@@ -1,0 +1,19 @@
+# Build folders
+Debug/
+Release/
+
+# Object files
+*.o
+*.d
+*.su
+
+# Executables / outputs
+*.elf
+*.map
+*.list
+
+# STM32 IDE settings
+.settings/
+
+# Misc
+*.log
