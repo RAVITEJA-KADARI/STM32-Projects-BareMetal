@@ -1,3 +1,25 @@
+/**
+ ******************************************************************************
+ * @file           : main.c
+ * @author         : RAVITEJA KADARI
+ * @github         : https://github.com/RAVITEJA-KADARI
+ * @brief          : STM32 Bare-Metal GPIO Blink Example
+ ******************************************************************************
+ * @attention
+ *
+ * This project demonstrates:
+ * 1. Enabling GPIOA clock on STM32.
+ * 2. Configuring PA1–PA10 as output pins.
+ * 3. Blinking LEDs connected to PA1–PA10 using simple delay loops.
+ * 4. Optional methods to toggle GPIO pins using XOR operator.
+ *
+ * Hardware  : STM32 Discovery Board or STM32 Nucleo, LEDs connected to PA1–PA10
+ * Created   : 2026
+ *
+ * License   : MIT License
+ *
+ ******************************************************************************
+ */
 
 #include <stdint.h>
 
