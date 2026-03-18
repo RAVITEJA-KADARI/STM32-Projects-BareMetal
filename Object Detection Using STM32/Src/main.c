@@ -1,3 +1,28 @@
+/**
+ ******************************************************************************
+ * @file           : main.c
+ * @author         : RAVITEJA KADARI
+ * @github         : https://github.com/RAVITEJA-KADARI
+ * @brief          : STM32 Bare-Metal IR Object Detection with LCD and Buzzer
+ ******************************************************************************
+ * @attention
+ *
+ * This project demonstrates:
+ * 1. Configuring GPIOA pin as input for IR sensor detection.
+ * 2. Configuring GPIOA pin as output for buzzer activation.
+ * 3. Initializing GPIOC and GPIOD pins for interfacing with a 16x2 LCD
+ *    (RS, RW, EN, D0–D7).
+ * 4. Detecting presence of an object using IR sensor.
+ * 5. Displaying "OBJECT DETECTED" or "NO OBJECT DETECTED" on the LCD.
+ * 6. Activating a buzzer when an object is detected.
+ *
+ * Hardware  : STM32 Discovery/Nucleo Board, IR sensor, Buzzer, 16x2 LCD
+ * Created   : 2026
+ *
+ * License   : MIT License
+ *
+ ******************************************************************************
+ */
 
 #include<stdint.h>
 
