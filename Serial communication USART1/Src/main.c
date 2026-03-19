@@ -23,38 +23,36 @@
  ******************************************************************************
  */
 
+
 #include <stdint.h>
 
-#define RCC_BASE        0x40021000
-#define RCC_AHBENR      (*(volatile uint32_t*)(RCC_BASE + 0x14))
-#define RCC_APB2ENR     (*(volatile uint32_t*)(RCC_BASE + 0x18))
+#define RCC_Base	0x40021000
+#define RCC_AHBENR	(*(volatile uint32_t*)(RCC_Base + 0x14))
+#define RCC_APB2ENR	(*(volatile uint32_t*)(RCC_Base + 0x18))
 
+#define GPIOC_Base	0x48000800
+#define GPIOC_MODER	(*(volatile uint32_t*)(GPIOC_Base + 0x00))
+#define GPIOC_AFRL	(*(volatile uint32_t*)(GPIOC_Base + 0x20))
+
+//--------For LCD RS,RW,EN--------//
 #define GPIOE_BASE      0x48001000
 #define GPIOE_MODER     (*(volatile uint32_t*)(GPIOE_BASE + 0x00))
 #define GPIOE_ODR       (*(volatile uint32_t*)(GPIOE_BASE + 0x14))
 
+//--------For LCD DATA PINS--------//
 #define GPIOD_BASE      0x48000C00
 #define GPIOD_MODER     (*(volatile uint32_t*)(GPIOD_BASE + 0x00))
 #define GPIOD_ODR       (*(volatile uint32_t*)(GPIOD_BASE + 0x14))
 
-#define GPIOC_BASE      0x48000800
-#define GPIOC_MODER     (*(volatile uint32_t*)(GPIOC_BASE + 0x00))
-#define GPIOC_AFRL      (*(volatile uint32_t*)(GPIOC_BASE + 0x20))
 
-#define USART1_BASE     0x40013800
-#define USART1_CR1      (*(volatile uint32_t*)(USART1_BASE + 0x00))  // Turning Usart on/off
-#define USART1_BRR      (*(volatile uint32_t*)(USART1_BASE + 0x0C))  // Set speed of sending and receiving  data
-#define USART1_ISR      (*(volatile uint32_t*)(USART1_BASE + 0x1C))  //shows status incoming and outgoing
-#define USART1_RDR      (*(volatile uint32_t*)(USART1_BASE + 0x24))  //receive data
-#define USART1_TDR      (*(volatile uint32_t*)(USART1_BASE + 0x28))  //send data
-
+//--------LCD--------//
 
 #define PORTE_EN        		21			// 	PORTE  LCD Control Lines
 #define PORTD_EN        		20			// 	PORTD  LCD Data line
 
 #define LCD_RS          		8   		// 	PE8
-#define LCD_RW          		9   		// 	PC9
-#define LCD_EN          		10   		// 	PC10
+#define LCD_RW          		9   		// 	PE9
+#define LCD_EN          		10   		// 	PE10
 
 #define LCD_D0          		8			//	PD8
 #define LCD_D1          		9			//	PD9
@@ -66,6 +64,10 @@
 #define LCD_D7          		15			//	PD15
 
 
+#define BUFFER_SIZE 32
+char usart1_buffer[BUFFER_SIZE];
+
+/* ================= DELAY ================= */
 void _delay_ms(uint16_t i)
 {
 	while(i)
@@ -75,15 +77,14 @@ void _delay_ms(uint16_t i)
 	}
 }
 
-
 void gpio_init(void)
 {
     RCC_AHBENR  |=  (1 << PORTE_EN) | (1 << PORTD_EN);
 
-    GPIOE_MODER &= ~(0xFF);             // 1111 1111
+    GPIOE_MODER &= ~(0xFF);
     GPIOE_MODER |=  ((1 << LCD_RS * 2) | (1 << LCD_RW * 2) | (1 << LCD_EN * 2));
 
-    GPIOD_MODER &= ~(0xFFFF << 16);		// 1111 1111 1111 1111
+    GPIOD_MODER &= ~(0xFFFF << 16);
     GPIOD_MODER |=  (0x5555 << 16);		// 0101 0101 0101 0101
 
     GPIOE_ODR   &= ~((1 << LCD_RS) | (1 << LCD_RW) | (1 << LCD_EN));
@@ -102,16 +103,16 @@ void lcd_pulse(void)
 
 void lcd_command(char cmd)
 {
-    GPIOE_ODR &= ~(1 << LCD_RS);  // 0 = it is in command mode sending command
-    GPIOE_ODR &= ~(1 << LCD_RW);  // writing data to lcd
+    GPIOE_ODR &= ~(1 << LCD_RS);
+    GPIOE_ODR &= ~(1 << LCD_RW);
     GPIOD_ODR  =  (GPIOD_ODR & 0x00FF) | (cmd << 8);
     lcd_pulse();
 }
 
 void lcd_data(char data)
 {
-    GPIOE_ODR |=  (1 << LCD_RS);   // 1 = sending data
-    GPIOE_ODR &= ~(1 << LCD_RW);  // writing data to lcd
+    GPIOE_ODR |=  (1 << LCD_RS);
+    GPIOE_ODR &= ~(1 << LCD_RW);
     GPIOD_ODR  =  (GPIOD_ODR & 0x00FF) | (data << 8);
     lcd_pulse();
 }
@@ -128,140 +129,138 @@ void lcd_init(void)
 }
 
 
-void lcd_string(char *str)
+void lcd_print(char *str)
 {
-    while(*str)
+	lcd_command(0x80);
+
+    int i = 0;
+
+    while(str[i] && i < 16)
+        lcd_data(str[i++]);
+
+    if(str[i])
     {
-        lcd_data(*str++);
+    	lcd_command(0xC0);
+        while(str[i] && i < 32)
+            lcd_data(str[i++]);
     }
 }
 
 
-#define USART_CR1_UE    		(1 << 0)  // 1 = Usart enable | 0 = Usart disable
-#define USART_CR1_RE    		(1 << 2)  // receive data
-#define USART_CR1_TE    		(1 << 3)  //transmit data
-#define USART_ISR_RXNE  		(1 << 5)  //Receive not empty  - received data sucessfully
-#define USART_ISR_TXE   		(1 << 7)  //Transmit empty - ready to receive from rx
+#define PORTC_EN	19
+#define TxPC4		4
+#define RxPC5		5
+#define USART1EN	14
 
-#define USART1_BAUD_9600   		833		//0x33E   	// 	= 8M / 9600 ≈ 69.44
+//--------USART Registers------//
+#define USART1_Base	0x40013800
+#define USART1_CR1	(*(volatile uint32_t*)(USART1_Base + 0x00))
+#define USART1_BRR	(*(volatile uint32_t*)(USART1_Base + 0x0C))
+#define USART1_ISR	(*(volatile uint32_t*)(USART1_Base + 0x1C))
+#define USART1_TDR	(*(volatile uint32_t*)(USART1_Base + 0x28))
+#define USART1_RDR  (*(volatile uint32_t*)(USART1_Base + 0x24))
 
-#define TxPC4					4
-#define RxPC5					5
-#define USART1EN				14
-#define PORTC_EN				19
+#define USART1_CR1_UE	(1 << 0)
+#define USART1_CR1_RE   (1 << 2)
+#define USART1_CR1_TE	(1 << 3)
+#define USART1_ISR_TXE	(1 << 7)
+#define USART1_ISR_RXNE (1 << 5)
 
-static void uart1_init(void)
+#define USART1_Baud_9600  833
+
+static void usart1_init(void)
 {
+	RCC_AHBENR |= (1 << PORTC_EN);
 
-    RCC_AHBENR  |=  (1 << PORTC_EN);
+	GPIOC_MODER &= ~((3 << (TxPC4 * 2)) | (3 << (RxPC5*2)));
+	GPIOC_MODER |=  ((2 << (TxPC4 * 2)) | (2 << (RxPC5*2)));
 
-    GPIOC_MODER &= ~((3    << (TxPC4*2)) | (3    << (RxPC5*2)));
-    GPIOC_MODER |=  ((2    << (TxPC4*2)) | (2    << (RxPC5*2)));
+	GPIOC_AFRL &= ~((0xF << (TxPC4 * 4)) | (0xF << (RxPC5*4)));
+	GPIOC_AFRL |=  ((0x7 << (TxPC4 * 4)) | (0x7 << (RxPC5*4)));
 
-    GPIOC_AFRL  &= ~((0xF  << (TxPC4*4)) | (0xF  << (RxPC5*4)));
-    GPIOC_AFRL  |=  ((0x07 << (TxPC4*4)) | (0x07 << (RxPC5*4)));
+	RCC_APB2ENR |= (1 << USART1EN);
+
+	USART1_BRR = USART1_Baud_9600;
 
 
-    RCC_APB2ENR |= (1 << USART1EN);
+	USART1_CR1 = USART1_CR1_UE |  USART1_CR1_TE	|	USART1_CR1_RE;
 
-    USART1_BRR = USART1_BAUD_9600;		// CPU f / Baud Rate = BRR Value = // 8000000 / 9600
-
-    USART1_CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE;
 }
 
-
-
-void uart1_tx_char(char c)
+/* 🔹 Receive one char */
+char usart1_read(void)
 {
-    while (!(USART1_ISR & USART_ISR_TXE));
-    USART1_TDR = c;
-}
-
-char uart1_rx_char(void)
-{
-    while (!(USART1_ISR & USART_ISR_RXNE));
+    while(!(USART1_ISR & USART1_ISR_RXNE)); // RXNE
     return USART1_RDR;
 }
 
-static void uart1_print(const char* s)
+/* 🔹 Transmit one char */
+void usart1_write_char(char c)
 {
-    while (*s)
-    {
-        uart1_tx_char(*s++);
-    }
-    uart1_tx_char('\n');
+    while(!(USART1_ISR & USART1_ISR_TXE)); // TXE
+    USART1_TDR = c;
 }
 
-// Buffer to store received characters
-#define BUFFER_SIZE 32
-char uart_buffer[BUFFER_SIZE];
-uint8_t buffer_index = 0;
-
-void uart1_receive_string(void)
+/* 🔹 Transmit string */
+void usart1_write_string(char *str)
 {
-    char c;
-    while (buffer_index < BUFFER_SIZE)
-    {
-        c = uart1_rx_char();  // Receive character
-        uart_buffer[buffer_index++] = c;  // Store in buffer
+    int i = 0;
+    while(str[i])
+        usart1_write_char(str[i++]);
+}
 
-        if (c == '\n' || buffer_index >= BUFFER_SIZE)  // End of line or buffer full
+/* 🔹 Read string + Echo */
+void usart1_read_string(void)
+{
+    int i = 0;
+    char c;
+
+    while(i < BUFFER_SIZE - 1)
+    {
+        c = usart1_read();
+
+        if(c == '\r' || c == '\n')
         {
-            uart_buffer[buffer_index] = '\0';  // Null-terminate string
+            usart1_write_string("\r\n"); // new line in terminal
             break;
         }
+
+        usart1_write_char(c); //  Echo back
+        usart1_buffer[i++] = c;
     }
+
+    usart1_buffer[i] = '\0';
 }
 
+/* ================= MAIN ================= */
 int main(void)
 {
     gpio_init();
     lcd_init();
-    uart1_init();
+    usart1_init();
 
-    _delay_ms(2000);
-    lcd_command(0x80);
-    lcd_string("WELCOME ");
-    _delay_ms(1500);
-    lcd_command(0xC0);
-    lcd_string("ALL..!");
+    usart1_write_string("System Ready\r\n");
+
+    lcd_print("HELLO!");
     _delay_ms(2000);
 
-    lcd_command(0x01);
-
-    lcd_command(0x80);
-    lcd_string("Testing USART!");
-    lcd_command(0xC0);
-    lcd_string("Communication!");
+    lcd_print("USART READY");
     _delay_ms(2000);
 
-    uart1_print("USART1 READY!     ");
-    uart1_print("TYPE ANY CHARACTER..");
-
-    while (1)
+    while(1)
     {
-        uart1_receive_string();  // Receive a string of characters
+        usart1_write_string("Enter Text: ");
 
-        // Clear display and print the buffer on LCD
-        lcd_command(0x01);  // Clear the display
-        lcd_command(0x80);  // Move cursor to first line
-        for (int i = 0; i< 16 && i < buffer_index; i++)
-        {
-            lcd_data(uart_buffer[i]);  // Display each character
-        }
-        if (buffer_index > 16)
-               {
-        lcd_command(0xc0);  // Move cursor to first line
-        for (int i = 16; i < buffer_index; i++)
-        {
-            lcd_data(uart_buffer[i]);  // Display each character
-        }
-               }
-        buffer_index = 0;  // Reset buffer index for the next string
+        usart1_read_string();
 
-        _delay_ms(500);  // Optional delay before receiving next string
+        lcd_command(0x01);   
+         _delay_ms(2);
+
+        lcd_print(usart1_buffer);
+
     }
 }
+
 
 
 
