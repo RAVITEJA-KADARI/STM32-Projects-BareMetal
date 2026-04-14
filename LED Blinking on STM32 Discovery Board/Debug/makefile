@@ -33,34 +33,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := LEDblinkingonboard
+BUILD_ARTIFACT_NAME := LED Blinking on STM32 Discovery Board
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-LEDblinkingonboard.elf \
+LED\ Blinking\ on\ STM32\ Discovery\ Board.elf \
 
 MAP_FILES += \
-LEDblinkingonboard.map \
+LED\ Blinking\ on\ STM32\ Discovery\ Board.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-LEDblinkingonboard.list \
+LED\ Blinking\ on\ STM32\ Discovery\ Board.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: LEDblinkingonboard.elf secondary-outputs
+main-build: LED\ Blinking\ on\ STM32\ Discovery\ Board.elf secondary-outputs
 
 # Tool invocations
-LEDblinkingonboard.elf LEDblinkingonboard.map: $(OBJS) $(USER_OBJS) C:\Users\HP\Desktop\STM32\ Projects\STM32F303VCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "LEDblinkingonboard.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\HP\Desktop\STM32 Projects\STM32F303VCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="LEDblinkingonboard.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+LED\ Blinking\ on\ STM32\ Discovery\ Board.elf LED\ Blinking\ on\ STM32\ Discovery\ Board.map: $(OBJS) $(USER_OBJS) C:\Users\HP\Desktop\STM32-Projects-BareMetal\LED\ Blinking\ on\ STM32\ Discovery\ Board\STM32F303VCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "LED Blinking on STM32 Discovery Board.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\HP\Desktop\STM32-Projects-BareMetal\LED Blinking on STM32 Discovery Board\STM32F303VCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="LED Blinking on STM32 Discovery Board.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -69,14 +69,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-LEDblinkingonboard.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "LEDblinkingonboard.list"
+LED\ Blinking\ on\ STM32\ Discovery\ Board.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "LED Blinking on STM32 Discovery Board.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) LEDblinkingonboard.elf LEDblinkingonboard.list LEDblinkingonboard.map default.size.stdout
+	-$(RM) LED\ Blinking\ on\ STM32\ Discovery\ Board.elf LED\ Blinking\ on\ STM32\ Discovery\ Board.list LED\ Blinking\ on\ STM32\ Discovery\ Board.map LED\\ Blinking\\ on\\ STM32\\ Discovery\\ Board.elf default.size.stdout
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)

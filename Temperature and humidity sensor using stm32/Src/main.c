@@ -15,10 +15,10 @@
  *
  ******************************************************************************
  */
- //-------Temperature and humidity-----------//
+//-------Temperature and humidity-----------//
 
 
-#include<stdint.h>
+#include <stdint.h>
 
 #define RCC_Base		0x40021000
 #define RCC_AHBENR		(*(volatile uint32_t*)(RCC_Base + 0x14))
@@ -69,10 +69,16 @@ void delay(uint32_t t)
 		for(volatile uint32_t i = 0; i < 8000; i++);
 }
 
-void delay1(uint32_t t)
+void delay_ms(uint32_t ms)
 {
-	while(t--)
-		for(volatile uint32_t i = 0; i < 8; i++);
+    while(ms--)
+        for(volatile uint32_t i = 0; i < 9000; i++);
+}
+
+void delay_us(uint32_t us)
+{
+    while(us--)
+        for(volatile uint32_t i = 0; i < 9; i++);
 }
 
 
@@ -93,7 +99,7 @@ void gpio_init(void)
 	}
 
 
-	GPIOD_ODR |= ((1 << LCD_RS) | (1 << LCD_RW) | (1 << LCD_EN));
+	GPIOD_ODR &= ~((1 << LCD_RS) | (1 << LCD_RW) | (1 << LCD_EN));
 
 }
 void LCD_pulse(void)
@@ -146,8 +152,8 @@ void LCD_init(void)
 void dht_output(void)
 {
 
-	GPIOA_MODER &= ~(3 << DHT11_IN*2);
-	GPIOA_MODER |=  (1 << DHT11_IN*2);
+	GPIOA_MODER &= ~(3 << (DHT11_IN*2));
+	GPIOA_MODER |=  (1 << (DHT11_IN*2));
 
 
 }
@@ -155,7 +161,7 @@ void dht_output(void)
 void dht_input(void)
 {
 
-	GPIOA_MODER &= ~(3 << DHT11_IN*2);
+	GPIOA_MODER &= ~(3 << (DHT11_IN*2));
 //    GPIOA_PUPDR &= ~(3 << (DHT11_IN*2));
   //  GPIOA_PUPDR |=  (1 << (DHT11_IN*2));
 
@@ -168,121 +174,102 @@ void dht_start(void)
 	dht_output();
 
 	GPIOA_ODR &= ~(1 << DHT11_IN);
-	delay(200);
+	delay_ms(18);       // Start low ≥18ms
 	GPIOA_ODR |=  (1 << DHT11_IN);
-	delay1(300);
+	delay_us(30);       // Wait 20–40us
 	dht_input();
 
-}
-
-uint8_t dht_readbit(void)
-{
-	while(GPIOA_IDR & (1 << DHT11_IN));
-	while(!(GPIOA_IDR & (1 << DHT11_IN)));
-	volatile uint32_t count=0;
-	while(GPIOA_IDR & (1 << DHT11_IN)) count++;
-	return (count>300)?1:0;
-}
-
-
-uint8_t dht_readbyte(void)
-{
-	uint8_t data = 0;
-	for(int i=0;i<8;i++){
-		data <<= 1;
-		data |= dht_readbit();
-
-	}
-
-	return data;
 }
 
 uint8_t dht_check_response(void)
 {
     uint32_t count = 0;
 
-    // Wait for DHT11 to pull line LOW (response ~80us)
-    while((GPIOA_IDR & (1 << DHT11_IN)) && count++ < 10000);
-    if(count >= 10000) return 0;
+    // Wait 80us low
+    while(GPIOA_IDR & (1<<DHT11_IN))
+        if (++count>1000) return 0;
 
     count = 0;
-    // Wait for DHT11 to pull line HIGH (~80us)
-    while(!(GPIOA_IDR & (1 << DHT11_IN)) && count++ < 10000);
-    if(count >= 10000) return 0;
+    // Wait 80us high
+    while(!(GPIOA_IDR & (1<<DHT11_IN)))
+        if (++count>1000) return 0;
 
-    return 1; // OK, response received
+    return 1;
 }
+
+uint8_t dht_readbit(void)
+{
+    while(!(GPIOA_IDR & (1<<DHT11_IN)));
+    delay_us(40);
+    if(GPIOA_IDR & (1<<DHT11_IN)){
+        while(GPIOA_IDR & (1<<DHT11_IN));
+        return 1;
+    }
+    return 0;
+}
+
+
+uint8_t dht_readbyte(void)
+{
+    uint8_t val=0;
+    for(int i=0; i<8; i++){
+        val <<= 1;
+        val |= dht_readbit();
+    }
+    return val;
+}
+
 
 
 int main(void)
 {
+    uint8_t rh_int, rh_dec, t_int, t_dec, checksum;
 
-	uint8_t RH_int, RH_dec, TEMP_int, TEMP_dec, checksum;
+    gpio_init();
+    LCD_init();
 
-	gpio_init();
-	LCD_init();
+    LCD_Command(0x80);
+    LCD_string("Sensor Init...");
+    delay_ms(1000);
 
+    while(1)
+    {
+        dht_start();
+        if(!dht_check_response()){
+            LCD_Command(0x01);
+            LCD_Command(0x80);
+            LCD_string("No DHT11!");
+            delay_ms(1000);
+            continue;
+        }
 
+        rh_int = dht_readbyte();
+        rh_dec = dht_readbyte();
+        t_int  = dht_readbyte();
+        t_dec  = dht_readbyte();
+        checksum = dht_readbyte();
 
-	delay(100);
-	LCD_Command(0x01);
-	LCD_Command(0x80);
-	LCD_string("WELCOME");
-	delay(200);
-	LCD_Command(0xC0);
-	LCD_string("DHT11 TESTING");
-	delay(200);
-	LCD_Command(0x01);
-	LCD_Command(0x80);
-	LCD_string("DATA INIT...!");
-	delay(200);
+        if(checksum != (rh_int + rh_dec + t_int + t_dec)){
+            LCD_Command(0x01);
+            LCD_Command(0x80);
+            LCD_string("Chk Error!");
+        } else {
+            LCD_Command(0x01);
+            LCD_Command(0x80);
+            LCD_string("Temp:");
+            LCD_data(t_int/10+'0');
+            LCD_data(t_int%10+'0');
+            LCD_string("C");
 
-	while(1)
-	{
-		dht_start();
-		if (!dht_check_response()) {
-		    LCD_Command(0x01);
-		    LCD_Command(0x80);
-		    LCD_string("No DHT11...");
-		}
-		else
-		{
-		RH_int = dht_readbyte();
-		RH_dec = dht_readbyte();
-		TEMP_int = dht_readbyte();
-		TEMP_dec = dht_readbyte();
-		checksum = dht_readbyte();
+            LCD_Command(0xC0);
+            LCD_string("Hum:");
+            LCD_data(rh_int/10+'0');
+            LCD_data(rh_int%10+'0');
+            LCD_string("%");
+        }
 
-		if(checksum != (RH_int + RH_dec + TEMP_int + TEMP_dec))
-		{
-			LCD_Command(0x01);
-			LCD_Command(0x80);
-			LCD_string("Error DHT11...!");
-			}
-
-		else
-
-		{
-			LCD_Command(0x01);
-			LCD_Command(0x80);
-			LCD_string("TEMP: ");
-			LCD_data(TEMP_int/10+'0');
-			LCD_data(TEMP_int%10+'0');
-			LCD_string("C ");
-
-			LCD_Command(0xC0);
-			LCD_string("HUMIDITY: ");
-			LCD_data(RH_int/10+'0');
-			LCD_data(RH_int%10+'0');
-			LCD_string("% ");
-			        }
-
-
-		delay(2000);
-
-	}
-
-	}
+        delay_ms(2000); // sensor interval ≥1s
+    }
 }
 
 
