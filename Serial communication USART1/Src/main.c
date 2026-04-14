@@ -1,3 +1,31 @@
+<<<<<<< HEAD
+=======
+/**
+ ******************************************************************************
+ * @file           : main.c
+ * @author         : RAVITEJA KADARI
+ * @github         : https://github.com/RAVITEJA-KADARI
+ * @brief          : STM32 Bare-Metal USART Communication with LCD Display
+ ******************************************************************************
+ * @attention
+ *
+ * This project demonstrates:
+ * 1. Configuring GPIOE pins for LCD control (RS, RW, EN).
+ * 2. Configuring GPIOD pins for LCD data lines (D0–D7).
+ * 3. Initializing USART1 on PC4 (TX) and PC5 (RX) at 9600 baud.
+ * 4. Sending and receiving data via USART1.
+ * 5. Displaying received characters on a 16x2 LCD in real-time.
+ * 6. Buffering incoming characters and splitting text across both LCD lines.
+ *
+ * Hardware  : STM32 Discovery/Nucleo Board, 16x2 LCD, PC4 (TX), PC5 (RX)
+ * Created   : 2026
+ *
+ * License   : MIT License
+ *
+ ******************************************************************************
+ */
+
+>>>>>>> 69b8bd3b5b818952c9d445a1ef7fa5e576b5c1f8
 
 #include <stdint.h>
 
@@ -200,7 +228,11 @@ void usart1_read_string(void)
             break;
         }
 
+<<<<<<< HEAD
         usart1_write_char(c); // 🔥 Echo back
+=======
+        usart1_write_char(c); //  Echo back
+>>>>>>> 69b8bd3b5b818952c9d445a1ef7fa5e576b5c1f8
         usart1_buffer[i++] = c;
     }
 
@@ -228,10 +260,22 @@ int main(void)
 
         usart1_read_string();
 
+<<<<<<< HEAD
         lcd_command(0x01);   // 🔥 CLEAR FIRST
+=======
+        lcd_command(0x01);   
+>>>>>>> 69b8bd3b5b818952c9d445a1ef7fa5e576b5c1f8
          _delay_ms(2);
 
         lcd_print(usart1_buffer);
 
     }
 }
+<<<<<<< HEAD
+=======
+
+
+
+
+
+>>>>>>> 69b8bd3b5b818952c9d445a1ef7fa5e576b5c1f8
