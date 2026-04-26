@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-=======
+
 /**
  ******************************************************************************
  * @file           : main.c
@@ -25,7 +24,7 @@
  ******************************************************************************
  */
 
->>>>>>> 69b8bd3b5b818952c9d445a1ef7fa5e576b5c1f8
+
 
 #include <stdint.h>
 
@@ -228,11 +227,11 @@ void usart1_read_string(void)
             break;
         }
 
-<<<<<<< HEAD
+
         usart1_write_char(c); // 🔥 Echo back
-=======
+
         usart1_write_char(c); //  Echo back
->>>>>>> 69b8bd3b5b818952c9d445a1ef7fa5e576b5c1f8
+
         usart1_buffer[i++] = c;
     }
 
@@ -260,22 +259,21 @@ int main(void)
 
         usart1_read_string();
 
-<<<<<<< HEAD
+
         lcd_command(0x01);   // 🔥 CLEAR FIRST
-=======
+
         lcd_command(0x01);   
->>>>>>> 69b8bd3b5b818952c9d445a1ef7fa5e576b5c1f8
+
          _delay_ms(2);
 
         lcd_print(usart1_buffer);
 
     }
 }
-<<<<<<< HEAD
-=======
 
 
 
 
 
->>>>>>> 69b8bd3b5b818952c9d445a1ef7fa5e576b5c1f8
+
+

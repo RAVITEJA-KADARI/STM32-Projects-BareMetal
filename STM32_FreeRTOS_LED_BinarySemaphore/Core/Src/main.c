@@ -1,0 +1,265 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2026 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+#include "cmsis_os.h"
+
+#include <stdint.h>
+
+#define RCC_AHBENR      (*(volatile uint32_t*)(RCC_BASE + 0x14))
+
+#define GPIOA_EN        17
+#define GPIOE_EN        21
+
+/* GPIOE (LEDs) */
+//#define GPIOE_BASE      0x48001000
+#define GPIOE_MODER     (*(volatile uint32_t*)(GPIOE_BASE + 0x00))
+#define GPIOE_ODR       (*(volatile uint32_t*)(GPIOE_BASE + 0x14))
+
+/* GPIOA (Button) */
+//#define GPIOA_BASE      0x48000000
+#define GPIOA_MODER     (*(volatile uint32_t*)(GPIOA_BASE + 0x00))
+#define GPIOA_IDR       (*(volatile uint32_t*)(GPIOA_BASE + 0x10))
+
+/* Pins */
+#define LED1_PIN    8
+#define LED2_PIN    9
+#define BUTTON_PIN  0
+
+
+
+/* Private variables ---------------------------------------------------------*/
+/* Definitions for defaultTask */
+osThreadId_t defaultTaskHandle;
+const osThreadAttr_t defaultTask_attributes = {
+  .name = "defaultTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for LEDTask1 */
+osThreadId_t LEDTask1Handle;
+const osThreadAttr_t LEDTask1_attributes = {
+  .name = "LEDTask1",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for LEDTask2 */
+osThreadId_t LEDTask2Handle;
+const osThreadAttr_t LEDTask2_attributes = {
+  .name = "LEDTask2",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for myBinarySem01 */
+osSemaphoreId_t myBinarySem01Handle;
+const osSemaphoreAttr_t myBinarySem01_attributes = {
+  .name = "myBinarySem01"
+};
+/* USER CODE BEGIN PV */
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+void StartDefaultTask(void *argument);
+void PE8(void *argument);
+void PE9(void *argument);
+
+
+int main(void)
+{
+
+
+ // HAL_Init();
+	  RCC_AHBENR |= (1 << GPIOE_EN);
+	  RCC_AHBENR |= (1 << GPIOA_EN);
+
+	  /* Configure PE8, PE10 as OUTPUT */
+	  GPIOE_MODER &= ~((3 << (LED1_PIN*2)) | (3 << (LED2_PIN*2)));
+	  GPIOE_MODER |=  ((1 << (LED1_PIN*2)) | (1 << (LED2_PIN*2)));
+
+	  /* Configure PA0 as INPUT */
+	  GPIOA_MODER &= ~(3 << (BUTTON_PIN*2));
+
+  SystemClock_Config();
+
+
+  osKernelInitialize();
+
+
+  myBinarySem01Handle = osSemaphoreNew(1, 0, &myBinarySem01_attributes);
+
+
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of LEDTask1 */
+  LEDTask1Handle = osThreadNew(PE8, NULL, &LEDTask1_attributes);
+
+  /* creation of LEDTask2 */
+  LEDTask2Handle = osThreadNew(PE9, NULL, &LEDTask2_attributes);
+
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+  }
+  /* USER CODE END 3 */
+}
+
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void *argument)
+{
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END 5 */
+}
+
+
+/* USER CODE END Header_PE8 */
+void PE8(void *argument)
+{
+  /* USER CODE BEGIN PE8 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  osSemaphoreAcquire(myBinarySem01Handle, osWaitForever);
+  while(1)
+  {
+      GPIOE_ODR ^= (1 << LED1_PIN);
+
+    osDelay(500);
+  }}
+  /* USER CODE END PE8 */
+}
+
+
+/* USER CODE END Header_PE9 */
+void PE9(void *argument)
+{
+  /* USER CODE BEGIN PE9 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  GPIOE_ODR ^= (1 << LED2_PIN);
+
+	  if(GPIOA_IDR & (1 << BUTTON_PIN))
+
+	  {
+		  osSemaphoreRelease(myBinarySem01Handle);
+	  }
+    osDelay(200);
+  }
+  /* USER CODE END PE9 */
+}
+
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM1)
+  {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
+#ifdef USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */

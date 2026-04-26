@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (13.3.rel1)
+# Toolchain: GNU Tools for STM32 (14.3.rel1)
 ################################################################################
 
 -include ../makefile.init
@@ -33,34 +33,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := PCB_Led_blinking_using_STM32
+BUILD_ARTIFACT_NAME := PCB Advanced LED patterns using STM32 Discovery Board
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-PCB_Led_blinking_using_STM32.elf \
+PCB\ Advanced\ LED\ patterns\ using\ STM32\ Discovery\ Board.elf \
 
 MAP_FILES += \
-PCB_Led_blinking_using_STM32.map \
+PCB\ Advanced\ LED\ patterns\ using\ STM32\ Discovery\ Board.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-PCB_Led_blinking_using_STM32.list \
+PCB\ Advanced\ LED\ patterns\ using\ STM32\ Discovery\ Board.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: PCB_Led_blinking_using_STM32.elf secondary-outputs
+main-build: PCB\ Advanced\ LED\ patterns\ using\ STM32\ Discovery\ Board.elf secondary-outputs
 
 # Tool invocations
-PCB_Led_blinking_using_STM32.elf PCB_Led_blinking_using_STM32.map: $(OBJS) $(USER_OBJS) C:\Users\HP\Desktop\STM32\ Projects\PCB\ led\ blinking\ with\ some\ special\ patterns\STM32F303VCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "PCB_Led_blinking_using_STM32.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\HP\Desktop\STM32 Projects\PCB led blinking with some special patterns\STM32F303VCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="PCB_Led_blinking_using_STM32.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+PCB\ Advanced\ LED\ patterns\ using\ STM32\ Discovery\ Board.elf PCB\ Advanced\ LED\ patterns\ using\ STM32\ Discovery\ Board.map: $(OBJS) $(USER_OBJS) C:\Users\HP\Desktop\STM32-Projects-BareMetal\PCB\ Advanced\ LED\ patterns\ using\ STM32\ Discovery\ Board\STM32F303VCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "PCB Advanced LED patterns using STM32 Discovery Board.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\HP\Desktop\STM32-Projects-BareMetal\PCB Advanced LED patterns using STM32 Discovery Board\STM32F303VCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="PCB Advanced LED patterns using STM32 Discovery Board.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -69,14 +69,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-PCB_Led_blinking_using_STM32.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "PCB_Led_blinking_using_STM32.list"
+PCB\ Advanced\ LED\ patterns\ using\ STM32\ Discovery\ Board.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "PCB Advanced LED patterns using STM32 Discovery Board.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) PCB_Led_blinking_using_STM32.elf PCB_Led_blinking_using_STM32.list PCB_Led_blinking_using_STM32.map default.size.stdout
+	-$(RM) PCB\ Advanced\ LED\ patterns\ using\ STM32\ Discovery\ Board.elf PCB\ Advanced\ LED\ patterns\ using\ STM32\ Discovery\ Board.list PCB\ Advanced\ LED\ patterns\ using\ STM32\ Discovery\ Board.map PCB\\ Advanced\\ LED\\ patterns\\ using\\ STM32\\ Discovery\\ Board.elf default.size.stdout
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)

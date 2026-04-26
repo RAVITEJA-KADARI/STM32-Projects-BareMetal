@@ -1,0 +1,489 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2026 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+#include "cmsis_os.h"
+#include <stdint.h>
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+
+
+#define RCC_Base		0x40021000
+#define RCC_AHBENR		(*(volatile uint32_t*)(RCC_Base + 0x14))
+
+#define GPIOE_Base		0x48001000
+#define GPIOE_MODER		(*(volatile uint32_t*)(GPIOE_Base + 0x00))
+#define GPIOE_ODR		(*(volatile uint32_t*)(GPIOE_Base + 0x14))
+
+#define PORTE_EN		21
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+/* Definitions for defaultTask */
+osThreadId_t defaultTaskHandle;
+const osThreadAttr_t defaultTask_attributes = {
+  .name = "defaultTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for PE8 */
+osThreadId_t PE8Handle;
+const osThreadAttr_t PE8_attributes = {
+  .name = "PE8",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for PE9 */
+osThreadId_t PE9Handle;
+const osThreadAttr_t PE9_attributes = {
+  .name = "PE9",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow1,
+};
+/* Definitions for PE10 */
+osThreadId_t PE10Handle;
+const osThreadAttr_t PE10_attributes = {
+  .name = "PE10",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow2,
+};
+/* Definitions for PE11 */
+osThreadId_t PE11Handle;
+const osThreadAttr_t PE11_attributes = {
+  .name = "PE11",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow3,
+};
+/* Definitions for PE12 */
+osThreadId_t PE12Handle;
+const osThreadAttr_t PE12_attributes = {
+  .name = "PE12",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow5,
+};
+/* Definitions for PE13 */
+osThreadId_t PE13Handle;
+const osThreadAttr_t PE13_attributes = {
+  .name = "PE13",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow6,
+};
+/* Definitions for PE14 */
+osThreadId_t PE14Handle;
+const osThreadAttr_t PE14_attributes = {
+  .name = "PE14",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow7,
+};
+/* Definitions for PE15 */
+osThreadId_t PE15Handle;
+const osThreadAttr_t PE15_attributes = {
+  .name = "PE15",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* USER CODE BEGIN PV */
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+void StartDefaultTask(void *argument);
+void LED1(void *argument);
+void LED2(void *argument);
+void LED3(void *argument);
+void LED4(void *argument);
+void LED5(void *argument);
+void LED6(void *argument);
+void LED7(void *argument);
+void LED8(void *argument);
+
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+
+  /* USER CODE BEGIN 1 */
+
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+
+	RCC_AHBENR |= (1 << PORTE_EN);
+	GPIOE_MODER &= ~(0xFFFF << (8*2));
+	GPIOE_MODER |=  (0x5555 << (8*2));
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  /* USER CODE BEGIN 2 */
+
+  /* USER CODE END 2 */
+
+  /* Init scheduler */
+  osKernelInitialize();
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* creation of defaultTask */
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of PE8 */
+  PE8Handle = osThreadNew(LED1, NULL, &PE8_attributes);
+
+  /* creation of PE9 */
+  PE9Handle = osThreadNew(LED2, NULL, &PE9_attributes);
+
+  /* creation of PE10 */
+  PE10Handle = osThreadNew(LED3, NULL, &PE10_attributes);
+
+  /* creation of PE11 */
+  PE11Handle = osThreadNew(LED4, NULL, &PE11_attributes);
+
+  /* creation of PE12 */
+  PE12Handle = osThreadNew(LED5, NULL, &PE12_attributes);
+
+  /* creation of PE13 */
+  PE13Handle = osThreadNew(LED6, NULL, &PE13_attributes);
+
+  /* creation of PE14 */
+  PE14Handle = osThreadNew(LED7, NULL, &PE14_attributes);
+
+  /* creation of PE15 */
+  PE15Handle = osThreadNew(LED8, NULL, &PE15_attributes);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+  }
+  /* USER CODE END 3 */
+}
+
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/* USER CODE BEGIN 4 */
+
+/* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+  * @brief  Function implementing the defaultTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void *argument)
+{
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_LED1 */
+/**
+* @brief Function implementing the PE8 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_LED1 */
+void LED1(void *argument)
+{
+  /* USER CODE BEGIN LED1 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  GPIOE_ODR |=  (1 << 8);
+	  osDelay(500);
+  }
+  /* USER CODE END LED1 */
+}
+
+/* USER CODE BEGIN Header_LED2 */
+/**
+* @brief Function implementing the PE9 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_LED2 */
+void LED2(void *argument)
+{
+  /* USER CODE BEGIN LED2 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  GPIOE_ODR ^=  (1 << 9);
+	  osDelay(300);
+
+  }
+  /* USER CODE END LED2 */
+}
+
+/* USER CODE BEGIN Header_LED3 */
+/**
+* @brief Function implementing the PE10 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_LED3 */
+void LED3(void *argument)
+{
+  /* USER CODE BEGIN LED3 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  GPIOE_ODR ^=  (1 << 10);
+	  osDelay(530);
+  }
+  /* USER CODE END LED3 */
+}
+
+/* USER CODE BEGIN Header_LED4 */
+/**
+* @brief Function implementing the PE11 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_LED4 */
+void LED4(void *argument)
+{
+  /* USER CODE BEGIN LED4 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  GPIOE_ODR ^=  (1 << 11);
+	  osDelay(500);
+  }
+  /* USER CODE END LED4 */
+}
+
+/* USER CODE BEGIN Header_LED5 */
+/**
+* @brief Function implementing the PE12 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_LED5 */
+void LED5(void *argument)
+{
+  /* USER CODE BEGIN LED5 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  GPIOE_ODR ^=  (1 << 12);
+	  osDelay(500);
+  }
+  /* USER CODE END LED5 */
+}
+
+/* USER CODE BEGIN Header_LED6 */
+/**
+* @brief Function implementing the PE13 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_LED6 */
+void LED6(void *argument)
+{
+  /* USER CODE BEGIN LED6 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  GPIOE_ODR ^=  (1 << 13);
+	  osDelay(500);
+  }
+  /* USER CODE END LED6 */
+}
+
+/* USER CODE BEGIN Header_LED7 */
+/**
+* @brief Function implementing the PE14 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_LED7 */
+void LED7(void *argument)
+{
+  /* USER CODE BEGIN LED7 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  GPIOE_ODR ^=  (1 << 14);
+	  osDelay(500);
+  }
+  /* USER CODE END LED7 */
+}
+
+/* USER CODE BEGIN Header_LED8 */
+/**
+* @brief Function implementing the PE15 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_LED8 */
+void LED8(void *argument)
+{
+  /* USER CODE BEGIN LED8 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  GPIOE_ODR ^=  (1 << 15);
+    osDelay(500);
+  }
+  /* USER CODE END LED8 */
+}
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
+#ifdef USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */

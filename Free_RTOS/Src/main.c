@@ -16,14 +16,89 @@
  ******************************************************************************
  */
 
+#include "FreeRTOS.h"
+#include "task.h"
 #include <stdint.h>
 
-#if !defined(__SOFT_FP__) && defined(__ARM_FP)
-  #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
-#endif
+/* ---------------- SYSTEM CORE CLOCK ---------------- */
+uint32_t SystemCoreClock = 72000000UL;
 
+/* ---------------- STM32F3 REGISTERS ---------------- */
+#define RCC_AHBENR   (*(volatile uint32_t*)0x40021014)
+
+#define GPIOE_MODER  (*(volatile uint32_t*)0x48001000)
+#define GPIOE_ODR    (*(volatile uint32_t*)0x48001014)
+
+/* ---------------- LED PIN ---------------- */
+#define LED_PIN 8   // PE8
+
+/* ---------------- FreeRTOS HOOKS ---------------- */
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
+{
+    (void)xTask;
+    (void)pcTaskName;
+
+    __asm volatile ("cpsid i");
+    while (1)
+    {
+        GPIOE_ODR ^= (1 << LED_PIN);
+    }
+}
+
+void vApplicationMallocFailedHook(void)
+{
+    __asm volatile ("cpsid i");
+    while (1)
+    {
+        GPIOE_ODR ^= (1 << LED_PIN);
+    }
+}
+
+/* ---------------- GPIO INIT ---------------- */
+void GPIO_Init(void)
+{
+    /* Enable GPIOE clock */
+    RCC_AHBENR |= (1 << 21);
+
+    /* Configure PE8 as output (01) */
+    GPIOE_MODER &= ~(3 << (LED_PIN * 2));
+    GPIOE_MODER |=  (1 << (LED_PIN * 2));
+}
+
+/* ---------------- LED TASK ---------------- */
+void LED_Task(void *pvParameters)
+{
+    (void)pvParameters;
+
+    while (1)
+    {
+        GPIOE_ODR ^= (1 << LED_PIN);
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}
+
+/* ---------------- MAIN ---------------- */
 int main(void)
 {
-    /* Loop forever */
-	for(;;);
+    GPIO_Init();
+
+    /* Create task (IMPORTANT: 256 words minimum) */
+    if (xTaskCreate(LED_Task, "LED", 256, NULL, 1, NULL) != pdPASS)
+    {
+        while (1)
+        {
+            GPIOE_ODR ^= (1 << LED_PIN);
+        }
+    }
+
+    /* Start scheduler */
+    vTaskStartScheduler();
+
+    /* Should never reach here */
+    while (1)
+    {
+        GPIOE_ODR ^= (1 << LED_PIN);
+    }
 }
+
+

@@ -1,8 +1,8 @@
-../Src/main.c:62:6:delay	3
-../Src/main.c:67:6:gpio_init	2
-../Src/main.c:90:6:LCD_pulse	1
-../Src/main.c:99:6:LCD_Command	1
-../Src/main.c:107:6:LCD_data	1
-../Src/main.c:115:6:LCD_string	2
-../Src/main.c:122:6:LCD_init	1
-../Src/main.c:138:5:main	2
+../Src/main.c:64:6:delay	3
+../Src/main.c:69:6:gpio_init	2
+../Src/main.c:92:6:LCD_pulse	1
+../Src/main.c:101:6:LCD_Command	1
+../Src/main.c:109:6:LCD_data	1
+../Src/main.c:117:6:LCD_string	2
+../Src/main.c:124:6:LCD_init	1
+../Src/main.c:140:5:main	2
