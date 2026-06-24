@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdint.h>
 
+
 /* RCC */
 //#define RCC_BASE        0x40021000
 #define RCC_AHBENR      (*(volatile uint32_t*)(RCC_BASE + 0x14))

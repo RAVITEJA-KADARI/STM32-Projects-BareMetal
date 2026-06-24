@@ -148,9 +148,9 @@ void adc1_init(void)
     // (1 << 28): Enable ADC1 & ADC2 clock
 
     // 2️. Configure PA0 as analog input
-    GPIOA_MODER &= ~(3 << 0*2);  // Clear mode bits for PA0
-    GPIOA_MODER |=  (3 << 0*2);  // Set PA0 to analog mode (11)
-    GPIOA_PUPDR &= ~(1 << 0*2);  // Disable pull-up/pull-down for PA0
+    GPIOA_MODER &= ~(3 << (0*2));  // Clear mode bits for PA0
+    GPIOA_MODER |=  (3 << (0*2));  // Set PA0 to analog mode (11)
+    GPIOA_PUPDR &= ~(1 << (0*2));  // Disable pull-up/pull-down for PA0
 
     // 3️. Ensure ADC is disabled before configuration
     if(ADC1_CR & 1)              // If ADC enabled

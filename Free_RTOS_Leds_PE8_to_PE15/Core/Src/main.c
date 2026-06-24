@@ -19,11 +19,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
-#include <stdint.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include <stdio.h>
 
 #define RCC_Base		0x40021000
 #define RCC_AHBENR		(*(volatile uint32_t*)(RCC_Base + 0x14))
@@ -42,7 +42,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+int __io_putchar(int ch)
+{
+    ITM_SendChar(ch);
+    return ch;
+}
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -70,49 +74,49 @@ osThreadId_t PE9Handle;
 const osThreadAttr_t PE9_attributes = {
   .name = "PE9",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow1,
+  .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for PE10 */
 osThreadId_t PE10Handle;
 const osThreadAttr_t PE10_attributes = {
   .name = "PE10",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow2,
+  .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for PE11 */
 osThreadId_t PE11Handle;
 const osThreadAttr_t PE11_attributes = {
   .name = "PE11",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow3,
+  .priority = (osPriority_t) osPriorityBelowNormal,
 };
 /* Definitions for PE12 */
 osThreadId_t PE12Handle;
 const osThreadAttr_t PE12_attributes = {
   .name = "PE12",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow5,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for PE13 */
 osThreadId_t PE13Handle;
 const osThreadAttr_t PE13_attributes = {
   .name = "PE13",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow6,
+  .priority = (osPriority_t) osPriorityAboveNormal,
 };
 /* Definitions for PE14 */
 osThreadId_t PE14Handle;
 const osThreadAttr_t PE14_attributes = {
   .name = "PE14",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow7,
+  .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for PE15 */
 osThreadId_t PE15Handle;
 const osThreadAttr_t PE15_attributes = {
   .name = "PE15",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityRealtime,
 };
 /* USER CODE BEGIN PV */
 
@@ -120,6 +124,7 @@ const osThreadAttr_t PE15_attributes = {
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
 void StartDefaultTask(void *argument);
 void LED1(void *argument);
 void LED2(void *argument);
@@ -171,6 +176,7 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -258,10 +264,13 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -271,7 +280,7 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
@@ -280,6 +289,26 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+
+  /* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -299,7 +328,9 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	    printf("Hello\r\n");
+	    osDelay(1000);
+
   }
   /* USER CODE END 5 */
 }
@@ -337,7 +368,7 @@ void LED2(void *argument)
   for(;;)
   {
 	  GPIOE_ODR ^=  (1 << 9);
-	  osDelay(250);
+	 osDelay(500);
 
   }
   /* USER CODE END LED2 */
@@ -357,7 +388,7 @@ void LED3(void *argument)
   for(;;)
   {
 	  GPIOE_ODR ^=  (1 << 10);
-	  osDelay(500);
+	 osDelay(450);
   }
   /* USER CODE END LED3 */
 }
@@ -376,7 +407,7 @@ void LED4(void *argument)
   for(;;)
   {
 	  GPIOE_ODR ^=  (1 << 11);
-	  osDelay(500);
+	   osDelay(400);
   }
   /* USER CODE END LED4 */
 }
@@ -395,7 +426,7 @@ void LED5(void *argument)
   for(;;)
   {
 	  GPIOE_ODR ^=  (1 << 12);
-	  osDelay(500);
+	  osDelay(350);
   }
   /* USER CODE END LED5 */
 }
@@ -414,7 +445,7 @@ void LED6(void *argument)
   for(;;)
   {
 	  GPIOE_ODR ^=  (1 << 13);
-	  osDelay(500);
+	   osDelay(530);
   }
   /* USER CODE END LED6 */
 }
@@ -433,7 +464,7 @@ void LED7(void *argument)
   for(;;)
   {
 	  GPIOE_ODR ^=  (1 << 14);
-	  osDelay(500);
+	  osDelay(250);
   }
   /* USER CODE END LED7 */
 }
@@ -451,10 +482,32 @@ void LED8(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  GPIOE_ODR ^=  (1 << 15);
-    osDelay(500);
+	  GPIOE_ODR |=  (1 << 15);
+	  osDelay(200);
   }
   /* USER CODE END LED8 */
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM6 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM6)
+  {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
 }
 
 /**

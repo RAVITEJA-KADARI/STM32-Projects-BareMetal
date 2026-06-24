@@ -1,0 +1,4 @@
+#Thu May 14 11:15:28 IST 2026
+__DEFAULT__=false
+expression=api_config.json
+org.eclipse.help.ui.localSearch.master=true
