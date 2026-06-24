@@ -1,3 +1,7 @@
+# STM32 / CubeIDE
+.metadata/
+.settings/
+
 # Build folders
 Debug/
 Release/
@@ -11,9 +15,13 @@ Release/
 *.elf
 *.map
 *.list
+*.hex
+*.bin
 
-# STM32 IDE settings
-.settings/
-
-# Misc
+# IDE / logs
+*.launch
 *.log
+
+# System files
+.DS_Store
+Thumbs.db
